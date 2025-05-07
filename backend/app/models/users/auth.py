@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Annotated
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from ...config import settings
+from .database import user_db_service
 
 # Setup password context for hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -57,3 +58,27 @@ def decode_token(token: str) -> dict:
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    """Get the current authenticated user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        # Decode the JWT token
+        payload = decode_token(token)
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
+    # Get the user from database
+    user = await user_db_service.get_user_by_id(user_id)
+    if user is None:
+        raise credentials_exception
+        
+    return user

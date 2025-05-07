@@ -1,57 +1,43 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from jose import JWTError, jwt
 from typing import List
 
-from ...models.users import UserResponse, UserProfileUpdate
-from ...models.users import user_db, oauth2_scheme, decode_token
-from ...config import settings
+from ...models.users import UserResponse, UserProfileUpdate, UserInDB
+from ...models.users.auth import get_current_user
+from ...models.users.database import user_db_service
 
 router = APIRouter()
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
-    """Get the current authenticated user from JWT token."""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    
-    try:
-        payload = decode_token(token)
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-        
-    user = user_db.get_user_by_id(user_id)
-    if user is None:
-        raise credentials_exception
-        
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        username=user.username,
-        created_at=user.created_at,
-        last_login=user.last_login,
-        is_active=user.is_active
-    )
-
 @router.get("/me", response_model=UserResponse)
-async def get_user_profile(current_user: UserResponse = Depends(get_current_user)):
-    """Get the current user's profile."""
-    return current_user
+async def get_user_profile(current_user: UserInDB = Depends(get_current_user)):
+    """Get current user's profile."""
+    return current_user.to_response()
 
 @router.put("/me", response_model=UserResponse)
 async def update_user_profile(
-    user_update: UserProfileUpdate,
-    current_user: UserResponse = Depends(get_current_user)
+    update_data: UserProfileUpdate,
+    current_user: UserInDB = Depends(get_current_user)
 ):
-    """Update the current user's profile."""
-    updated_user = user_db.update_user(current_user.id, user_update.dict(exclude_none=True))
+    """Update current user's profile."""
+    updated_user = await user_db_service.update_user(current_user.id, update_data)
     if not updated_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
     return updated_user
+
+@router.get("/", response_model=List[UserResponse])
+async def list_users(current_user: UserInDB = Depends(get_current_user)):
+    """List all users. Requires authentication."""
+    return await user_db_service.list_users()
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_current_user(current_user: UserInDB = Depends(get_current_user)):
+    """Delete current user account."""
+    success = await user_db_service.delete_user(current_user.id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return {"detail": "User deleted successfully"}

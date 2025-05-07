@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import axios from 'axios';
 
-// API base URL
+// API URL from environment or fallback
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 // Types
@@ -24,25 +24,29 @@ interface AuthContextType {
   updateProfile: (data: { username?: string; email?: string }) => Promise<User>;
 }
 
-// Create the context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// Auth provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Provider component
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in on mount
+  // Check auth status on load
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
+      
       if (token) {
+        // Set default auth header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
         try {
-          // Set the auth header
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
-          // Fetch current user
           const response = await axios.get(`${API_BASE_URL}/users/me`);
           setUser(response.data as User);
           setIsAuthenticated(true);
@@ -111,10 +115,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Update user profile
   const updateProfile = async (data: { username?: string; email?: string }): Promise<User> => {
-    const response = await axios.put(`${API_BASE_URL}/users/me`, data);
-    const updatedUser = response.data as User;
-    setUser(updatedUser);
-    return updatedUser;
+    setIsLoading(true);
+    
+    try {
+      const response = await axios.put(`${API_BASE_URL}/users/me`, data);
+      const updatedUser = response.data as User;
+      setUser(updatedUser);
+      return updatedUser;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Context value
@@ -131,10 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use auth context
+// Context hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
