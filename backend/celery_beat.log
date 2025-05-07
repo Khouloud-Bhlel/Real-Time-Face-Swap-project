@@ -1,0 +1,29 @@
+[1;31m2025-05-07 16:46:42.431715125 [E:onnxruntime:Default, provider_bridge_ort.cc:2036 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1695 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcublasLt.so.12: cannot open shared object file: No such file or directory
+[m
+[1;31m2025-05-07 16:46:47.908195447 [E:onnxruntime:Default, provider_bridge_ort.cc:2036 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1695 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcublasLt.so.12: cannot open shared object file: No such file or directory
+[m
+[1;31m2025-05-07 16:46:47.979604170 [E:onnxruntime:Default, provider_bridge_ort.cc:2036 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1695 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcublasLt.so.12: cannot open shared object file: No such file or directory
+[m
+[1;31m2025-05-07 16:46:48.118149847 [E:onnxruntime:Default, provider_bridge_ort.cc:2036 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1695 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcublasLt.so.12: cannot open shared object file: No such file or directory
+[m
+[1;31m2025-05-07 16:46:48.612052920 [E:onnxruntime:Default, provider_bridge_ort.cc:2036 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1695 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcublasLt.so.12: cannot open shared object file: No such file or directory
+[m
+[2025-05-07 16:47:03,251: INFO/MainProcess] beat: Starting...
+[2025-05-07 16:47:03,904: ERROR/MainProcess] Removing corrupted schedule file 'celerybeat-schedule': error(11, 'Resource temporarily unavailable')
+Traceback (most recent call last):
+  File "/home/khouloud/Documents/all personnel  projects/Real-Time-Face-Swap-project/backend/venv/lib/python3.12/site-packages/celery/beat.py", line 531, in setup_schedule
+    self._store = self._open_schedule()
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/khouloud/Documents/all personnel  projects/Real-Time-Face-Swap-project/backend/venv/lib/python3.12/site-packages/celery/beat.py", line 521, in _open_schedule
+    return self.persistence.open(self.schedule_filename, writeback=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 243, in open
+    return DbfilenameShelf(filename, flag, protocol, writeback)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 227, in __init__
+    Shelf.__init__(self, dbm.open(filename, flag), protocol, writeback)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/dbm/__init__.py", line 95, in open
+    return mod.open(file, flag, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_gdbm.error: [Errno 11] Resource temporarily unavailable: 'celerybeat-schedule'

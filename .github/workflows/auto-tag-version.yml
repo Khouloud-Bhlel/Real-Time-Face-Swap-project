@@ -1,0 +1,97 @@
+name: Auto Version Tagging
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '!**.md'
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Git
+        run: |
+          git config --local user.email "khouloud.bhlel@gmail.com"
+          git config --local user.name "khouloud ben hlel"
+          
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          # Get latest tag or set initial version if no tag exists
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          
+      - name: Bump version
+        id: bump_version
+        run: |
+          # Parse current version
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          
+          # Remove the 'v' prefix
+          VERSION=${LATEST_TAG#v}
+          
+          # Split the version into components
+          IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+          
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          
+          # Determine the type of changes based on commit messages
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          # Bump version based on commit message
+          if [[ "$COMMIT_MSG" =~ \[major\] ]]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [[ "$COMMIT_MSG" =~ \[minor\] ]]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            # Default to patch bump for regular changes
+            PATCH=$((PATCH + 1))
+          fi
+          
+          # Create new version
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Create and push tag
+        run: |
+          NEW_VERSION=${{ steps.bump_version.outputs.new_version }}
+          LATEST_TAG=${{ steps.get_latest_tag.outputs.latest_tag }}
+          
+          # Only create a new tag if it's different from the latest one
+          if [ "$NEW_VERSION" != "$LATEST_TAG" ]; then
+            echo "Creating new tag: $NEW_VERSION"
+            git tag -a $NEW_VERSION -m "Release $NEW_VERSION"
+            git push origin $NEW_VERSION
+          else
+            echo "No version change, skipping tag creation"
+          fi
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: steps.bump_version.outputs.new_version != steps.get_latest_tag.outputs.latest_tag
+        with:
+          tag_name: ${{ steps.bump_version.outputs.new_version }}
+          name: Release ${{ steps.bump_version.outputs.new_version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: Optional[str] = "deepfaceswap"
 
     # Performance Settings
-    USE_GPU: bool = True
+    USE_GPU: bool = False  # Changed from True to False
     BATCH_SIZE: int = 4  # For video processing
 
     # Rate Limiting
@@ -40,6 +40,11 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str = "YOUR_SECURE_SECRET_KEY_HERE"  # Change in production!
+    
+    # JWT Authentication
+    JWT_SECRET_KEY: str = "JWT_SECRET_KEY_CHANGE_THIS_IN_PRODUCTION"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     class Config:
         case_sensitive = True

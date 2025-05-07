@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from .config import settings
 from .routes import swap, live
+from .routes.auth import auth_router, user_router
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -47,6 +48,19 @@ app.include_router(
     live.router,
     prefix=settings.API_V1_STR,
     tags=["Real-Time Face Swap"]
+)
+
+# Include authentication routers
+app.include_router(
+    auth_router,
+    prefix=f"{settings.API_V1_STR}/auth",
+    tags=["Authentication"]
+)
+
+app.include_router(
+    user_router,
+    prefix=f"{settings.API_V1_STR}/users",
+    tags=["Users"]
 )
 
 # Add Mangum handler for AWS Lambda deployment (optional)

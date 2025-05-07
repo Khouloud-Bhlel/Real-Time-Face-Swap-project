@@ -22,6 +22,8 @@ This is the backend service for the DeepFaceSwap AI project, providing real-time
 2. Create a virtual environment:
    ```bash
    python -m venv venv
+   or 
+   python3 -m venv venv
    ```
 3. Activate the virtual environment:
    ```bash
