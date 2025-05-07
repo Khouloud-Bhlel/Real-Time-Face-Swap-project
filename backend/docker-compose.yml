@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./models:/app/models
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  celery_worker:
+    build: .
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./models:/app/models
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    command: celery -A celery_app worker --loglevel=info
+
+  celery_beat:
+    build: .
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    command: celery -A celery_app beat --loglevel=info
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
