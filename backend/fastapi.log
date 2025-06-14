@@ -1,4 +1,4 @@
 INFO:     Will watch for changes in these directories: ['/home/khouloud/Documents/all personnel  projects/Real-Time-Face-Swap-project/backend']
 WARNING:  "workers" flag is ignored when reloading is enabled.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [12299] using StatReload
+INFO:     Started reloader process [26397] using StatReload
